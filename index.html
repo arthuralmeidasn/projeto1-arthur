@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfel - Dashboard Financeiro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Bibliotecas para gráficos e PDF -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <!-- Sistema de Login/Acesso -->
+    <div id="access-control">
+        <div id="login-section">
+            <select id="user-role">
+                <option value="client">Cliente</option>
+                <option value="consultant">Consultor</option>
+                <option value="leader">Líder</option>
+                <option value="allocation">Time de Alocação</option>
+                <option value="master">Master</option>
+            </select>
+            <button id="login-btn"><i class="fas fa-sign-in-alt"></i> Acessar</button>
+        </div>
+        <div id="user-info" class="hidden">
+            <span id="current-role"></span>
+            <button id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </div>
+
+    <header>
+        <h1><i class="fas fa-chart-line"></i> Portfel - Dashboard Financeiro</h1>
+        <nav id="main-menu">
+            <ul>
+                <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="#" data-section="goals"><i class="fas fa-bullseye"></i> Objetivos</a></li>
+                <li><a href="#" data-section="contacts" class="consultant-only"><i class="fas fa-address-book"></i> Contatos</a></li>
+                <li><a href="#" data-section="reports" class="consultant-only leader-only"><i class="fas fa-file-alt"></i> Relatórios</a></li>
+                <li><a href="#" data-section="allocation" class="allocation-only"><i class="fas fa-pie-chart"></i> Alocação</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <main>
+        <!-- Seção: Dados e Objetivos -->
+        <section id="data-inputs" class="active-section">
+            <div class="section-header">
+                <h2><i class="fas fa-edit"></i> Dados e Objetivos</h2>
+                <div class="section-actions">
+                    <button id="save-data"><i class="fas fa-save"></i> Salvar</button>
+                    <button id="reset-data"><i class="fas fa-redo"></i> Limpar</button>
+                </div>
+            </div>
+            
+            <form id="finance-form">
+                <div class="form-column">
+                    <h3>Dados Patrimoniais</h3>
+                    <div class="input-group">
+                        <label for="patrimonio-inicial"><i class="fas fa-wallet"></i> Patrimônio Inicial (R$):</label>
+                        <input type="number" id="patrimonio-inicial" step="0.01" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="patrimonio-meta"><i class="fas fa-bullseye"></i> Meta de Patrimônio (R$):</label>
+                        <input type="number" id="patrimonio-meta" step="0.01" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="aporte-mensal"><i class="fas fa-money-bill-wave"></i> Aporte Mensal (R$):</label>
+                        <input type="number" id="aporte-mensal" step="0.01" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="tempo"><i class="fas fa-calendar-alt"></i> Período (meses):</label>
+                        <input type="number" id="tempo" min="1" required>
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <h3>Objetivo Financeiro</h3>
+                    <div class="input-group">
+                        <label for="objetivo"><i class="fas fa-flag"></i> Objetivo Principal:</label>
+                        <select id="objetivo" required>
+                            <option value="">Selecione...</option>
+                            <option value="aposentadoria">Aposentadoria</option>
+                            <option value="imovel">Compra de Imóvel</option>
+                            <option value="educacao">Faculdade do Filho</option>
+                            <option value="reforma">Reforma da Casa</option>
+                            <option value="viagem">Viagem</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div id="custom-goal-container" class="hidden">
+                        <div class="input-group">
+                            <label for="objetivo-personalizado">Descrição:</label>
+                            <input type="text" id="objetivo-personalizado">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label><i class="fas fa-chart-bar"></i> Rentabilidade:</label>
+                        <div class="inline-inputs">
+                            <select id="rentabilidade-tipo">
+                                <option value="fixa">Taxa Fixa</option>
+                                <option value="ipca">IPCA + %</option>
+                                <option value="cdi">CDI + %</option>
+                                <option value="cdi-percent">% do CDI</option>
+                            </select>
+                            <input type="number" id="rentabilidade-valor" step="0.01" placeholder="0.00">
+                            <span id="rentabilidade-sufixo">% a.a.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <button type="button" id="anbima-btn" class="secondary">
+                            <i class="fas fa-external-link-alt"></i> Usar dados ANBIMA
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-column consultant-only">
+                    <h3>Dados do Cliente</h3>
+                    <div class="input-group">
+                        <label for="perfil-risco"><i class="fas fa-user-shield"></i> Perfil de Risco:</label>
+                        <select id="perfil-risco">
+                            <option value="conservador">Conservador</option>
+                            <option value="moderado">Moderado</option>
+                            <option value="arrojado">Arrojado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="fgc-coverage"><i class="fas fa-shield-alt"></i> Cobertura FGC:</label>
+                        <div class="inline-inputs">
+                            <input type="number" id="fgc-coverage" value="250000" readonly>
+                            <span>R$ por emissor</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <button type="button" id="simular-fgc" class="secondary">
+                            <i class="fas fa-calculator"></i> Simular Aporte Máximo
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+        
+        <!-- Seção: Dashboard Principal -->
+        <section id="dashboard" class="hidden-section">
+            <div class="section-header">
+                <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                <div class="section-actions">
+                    <button id="export-pdf"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+                    <button id="refresh-data"><i class="fas fa-sync-alt"></i> Atualizar</button>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="card main-chart">
+                    <h3><i class="fas fa-chart-line"></i> Evolução Patrimonial</h3>
+                    <canvas id="graficoComparacao"></canvas>
+                </div>
+                
+                <div class="card secondary-chart">
+                    <h3><i class="fas fa-pie-chart"></i> Alocação Atual vs. Meta</h3>
+                    <canvas id="graficoAlocacao"></canvas>
+                </div>
+                
+                <div class="card fgc-card consultant-only">
+                    <h3><i class="fas fa-shield-alt"></i> Cobertura FGC</h3>
+                    <div id="fgc-info">
+                        <p>Limite atual por emissor: <strong>R$ 250.000</strong></p>
+                        <div class="fgc-meter">
+                            <div class="fgc-progress" style="width: 0%"></div>
+                        </div>
+                        <p id="fgc-status">Status: <span class="safe">Dentro do limite</span></p>
+                    </div>
+                </div>
+                
+                <div class="card simulation-card">
+                    <h3><i class="fas fa-calculator"></i> Simulações</h3>
+                    <div class="simulation-controls">
+                        <button id="what-if-btn"><i class="fas fa-question-circle"></i> E se eu...</button>
+                        <select id="simulation-type">
+                            <option value="aporte">Aumentar/Diminuir aportes</option>
+                            <option value="tempo">Alterar o prazo</option>
+                            <option value="rentabilidade">Mudar a rentabilidade</option>
+                        </select>
+                    </div>
+                    <div id="simulation-results" class="hidden">
+                        <h4>Resultado da Simulação:</h4>
+                        <div id="simulation-chart-container">
+                            <canvas id="simulation-chart"></canvas>
+                        </div>
+                        <div id="simulation-details"></div>
+                    </div>
+                </div>
+                
+                <div class="card rebalance-card consultant-only allocation-only">
+                    <h3><i class="fas fa-balance-scale"></i> Sugestão de Rebalanceamento</h3>
+                    <div id="assets-suggestion">
+                        <p>Selecione um objetivo para ver sugestões de alocação.</p>
+                    </div>
+                    <div class="allocation-controls allocation-only">
+                        <button id="adjust-allocation"><i class="fas fa-sliders-h"></i> Ajustar Alocação</button>
+                    </div>
+                </div>
+                
+                <div class="card holding-card consultant-only leader-only">
+                    <h3><i class="fas fa-building"></i> Análise de Holding</h3>
+                    <div id="holding-analysis">
+                        <p>Simulação de viabilidade de estruturação patrimonial.</p>
+                        <button id="run-holding-sim"><i class="fas fa-calculator"></i> Calcular Viabilidade</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Seção: Registro de Contatos (Consultores) -->
+        <section id="contacts" class="hidden-section consultant-only">
+            <div class="section-header">
+                <h2><i class="fas fa-address-book"></i> Registro de Contatos</h2>
+                <div class="section-actions">
+                    <button id="export-contacts"><i class="fas fa-download"></i> Exportar</button>
+                </div>
+            </div>
+            
+            <div class="contacts-container">
+                <form id="interaction-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="interaction-date"><i class="fas fa-calendar-day"></i> Data:</label>
+                            <input type="date" id="interaction-date" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="interaction-type"><i class="fas fa-comment-dots"></i> Tipo:</label>
+                            <select id="interaction-type" required>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="ligacao">Ligação</option>
+                                <option value="reuniao-presencial">Reunião Presencial</option>
+                                <option value="reuniao-video">Reunião por Vídeo</option>
+                                <option value="email">E-mail</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="interaction-notes"><i class="fas fa-sticky-note"></i> Anotações:</label>
+                        <textarea id="interaction-notes" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit"><i class="fas fa-plus-circle"></i> Registrar Contato</button>
+                    </div>
+                </form>
+                
+                <div class="contacts-history">
+                    <h3><i class="fas fa-history"></i> Histórico de Interações</h3>
+                    <div id="interactions-list">
+                        <p class="empty-message">Nenhuma interação registrada ainda.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Seção: Relatórios (Consultores/Líderes) -->
+        <section id="reports" class="hidden-section consultant-only leader-only">
+            <div class="section-header">
+                <h2><i class="fas fa-file-alt"></i> Relatórios</h2>
+            </div>
+            <div class="reports-grid">
+                <!-- Conteúdo dos relatórios será gerado dinamicamente -->
+            </div>
+        </section>
+        
+        <!-- Seção: Alocação (Time de Alocação) -->
+        <section id="allocation" class="hidden-section allocation-only">
+            <div class="section-header">
+                <h2><i class="fas fa-pie-chart"></i> Gestão de Alocação</h2>
+            </div>
+            <div class="allocation-control-panel">
+                <!-- Controles avançados de alocação -->
+            </div>
+        </section>
+    </main>
+    
+    <!-- Rodapé -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3><i class="fas fa-chart-pie"></i> Portfel</h3>
+                <p>Soluções em Planejamento Financeiro</p>
+            </div>
+            <div class="footer-links">
+                <a href="#" id="public-link"><i class="fas fa-external-link-alt"></i> Versão Pública</a>
+                <a href="#"><i class="fas fa-question-circle"></i> Ajuda</a>
+                <a href="#"><i class="fas fa-cog"></i> Configurações</a>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <p>&copy; 2025 Portfel. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/script.js"></script>
+    <script>
+        // Inicialização do sistema
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar se é a primeira execução
+            if (!localStorage.getItem('firstRun')) {
+                localStorage.setItem('firstRun', 'true');
+                showWelcomeMessage();
+            }
+            
+            // Carregar dados salvos (se existirem)
+            loadSavedData();
+        });
+        
+        function showWelcomeMessage() {
+            const welcomeMsg = `
+                <div class="welcome-modal">
+                    <h2>Bem-vindo ao Portfel Dashboard</h2>
+                    <p>Comece inserindo seus dados financeiros ou selecione um perfil de acesso no canto superior direito.</p>
+                    <button id="close-welcome">Entendi</button>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', welcomeMsg);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfel - Simulação Pública</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos específicos para a versão pública */
+        .public-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .public-container h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .public-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .public-form input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .public-form button {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .public-form button:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="public-container">
+        <h1><i class="fas fa-calculator"></i> Simulação Financeira</h1>
+        <form id="public-form" class="public-form">
+            <h2>Dados Pessoais</h2>
+            <input type="text" placeholder="Nome completo" required>
+            <input type="email" placeholder="E-mail" required>
+            <input type="tel" placeholder="Telefone" required>
+            
+            <h2>Dados Financeiros</h2>
+            <input type="number" placeholder="Patrimônio atual (R$)" required>
+            <input type="number" placeholder="Meta financeira (R$)" required>
+            <input type="number" placeholder="Aporte mensal (R$)" required>
+            <select required>
+                <option value="">Objetivo financeiro</option>
+                <option value="aposentadoria">Aposentadoria</option>
+                <option value="imovel">Compra de imóvel</option>
+                <option value="educacao">Educação</option>
+            </select>
+            
+            <button type="submit">Enviar e Visualizar Simulação</button>
+            <p class="terms">Ao enviar, concordo com os Termos de Uso e Política de Privacidade</p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('public-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulação de envio para CRM
+            alert('Simulação enviada com sucesso! Um consultor entrará em contato em breve.');
+            console.log('Dados do lead:', {
+                nome: this.querySelector('input[type="text"]').value,
+                email: this.querySelector('input[type="email"]').value,
+                telefone: this.querySelector('input[type="tel"]').value,
+                patrimonio: this.querySelector('input[placeholder*="Patrimônio"]').value,
+                meta: this.querySelector('input[placeholder*="Meta"]').value,
+                aporte: this.querySelector('input[placeholder*="Aporte"]').value,
+                objetivo: this.querySelector('select').value
+            });
+            
+            // Redirecionamento (simulado)
+            setTimeout(() => {
+                window.location.href = 'obrigado.html'; // Pode criar esta página depois
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
